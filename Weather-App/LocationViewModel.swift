@@ -11,7 +11,7 @@ import Combine
 @MainActor
 final class LocationViewModel: ObservableObject {
 
-    @Published var weatherDetails: WeatherDetails?
+    @Published var currentWeather: Current?
     @Published var isLoading = false
     @Published var errorMessage: String?
 
@@ -31,17 +31,8 @@ final class LocationViewModel: ObservableObject {
                 longitude: location.longitude
             )
 
-            let current = response.current
-
-            weatherDetails = WeatherDetails(
-                temperature: current.temperature2M,
-                feelsLike: current.apparentTemperature,
-                humidity: current.relativeHumidity2M,
-                windSpeed: current.windSpeed10M,
-                windDirection: current.windDirection10M,
-                weatherCode: current.weatherCode,
-                Precepitation: current.precipitation
-            )
+            currentWeather = response.current
+            
             isLoading = false
 
         } catch {
