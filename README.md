@@ -1,4 +1,4 @@
-#Weather-App
+# Weather-App
 A simple SwiftUI weather application that displays a list of locations with current weather conditions and navigates to a detailed weather screen.
 
 ## Result Views
