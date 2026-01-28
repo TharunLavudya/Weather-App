@@ -33,7 +33,7 @@ struct Current: Codable {
     let apparentTemperature: Double
     let weatherCode: Int
     let windSpeed10M: Double
-    let windDirection10M: Int
+    let windDirection10M: Double
     let precipitation: Double
 
     enum CodingKeys: String, CodingKey {

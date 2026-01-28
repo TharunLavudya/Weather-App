@@ -16,7 +16,7 @@ import SwiftUI
 
 struct LocationView: View {
 
-    let location: Location
+    @ObservedObject var weather: WeatherCache
 
     @StateObject private var viewModel = LocationViewModel(
         weatherService: WeatherService(
@@ -33,31 +33,29 @@ struct LocationView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(
-                colors: [.black, .blue.opacity(0.7)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
+            Color("bgColor")
+                .ignoresSafeArea()
 
             VStack(spacing: 24) {
 
-                Text(location.name)
+                // City name
+                Text(weather.name ?? "")
                     .font(.largeTitle)
                     .foregroundColor(.white)
                     .padding(.top, 40)
 
-                Image(systemName: location.weather.icon)
+                // Weather icon (placeholder for now)
+                Image(systemName: "cloud.sun.fill")
                     .font(.system(size: 120))
                     .foregroundColor(.yellow)
 
-                // Main Temperature
+                // Main temperature
                 Group {
                     if viewModel.isLoading {
                         ProgressView()
                             .tint(.white)
-                    } else if let current = viewModel.currentWeather {
-                        Text("\(Int(current.temperature2M))°C")
+                    } else if weather.isSynced {
+                        Text("\(Int(weather.temperature))°C")
                             .font(.system(size: 48, weight: .bold))
                             .foregroundColor(.white)
                     } else if let error = viewModel.errorMessage {
@@ -66,33 +64,28 @@ struct LocationView: View {
                     }
                 }
 
-                // Extra Weather Features (Grid)
-                if let current = viewModel.currentWeather {
+                // Extra Weather Features
+                if weather.isSynced {
                     LazyVGrid(columns: columns, spacing: 12) {
 
                         WeatherInfoCard(
                             title: "Feels Like",
-                            value: "\(Int(current.apparentTemperature))°C"
+                            value: "\(Int(weather.feelsLike))°C"
                         )
 
                         WeatherInfoCard(
                             title: "Humidity",
-                            value: "\(current.relativeHumidity2M)%"
+                            value: "\(weather.humidity)%"
                         )
 
                         WeatherInfoCard(
                             title: "Wind Speed",
-                            value: "\(current.windSpeed10M) km/h"
+                            value: "\(weather.windSpeed) km/h"
                         )
 
                         WeatherInfoCard(
                             title: "Direction",
-                            value: "\(current.windDirection10M)°"
-                        )
-
-                        WeatherInfoCard(
-                            title: "Weather Code",
-                            value: "\(current.weatherCode)"
+                            value: "\(weather.windDirection)°"
                         )
                     }
                     .padding(.horizontal)
@@ -113,7 +106,7 @@ struct LocationView: View {
             }
         }
         .task {
-            await viewModel.fetchWeather(for: location)
+            await viewModel.loadWeatherIfNeeded(for: weather)
         }
     }
 }

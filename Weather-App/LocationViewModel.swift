@@ -11,35 +11,50 @@ import Combine
 @MainActor
 final class LocationViewModel: ObservableObject {
 
-    @Published var currentWeather: Current?
     @Published var isLoading = false
     @Published var errorMessage: String?
 
     private let weatherService: WeatherServiceProtocol
+    private let db = PersistenceController.shared
 
     init(weatherService: WeatherServiceProtocol) {
         self.weatherService = weatherService
     }
 
-    func fetchWeather(for location: Location) async {
+    // Fetches weather ONLY if not present or expired (1 minute)
+    func loadWeatherIfNeeded(for weather: WeatherCache) async {
+
+        //  Cache check (1 minute)
+        if let updatedAt = weather.updatedAt,
+           Date().timeIntervalSince(updatedAt) < 60 {
+            return
+        }
+
         isLoading = true
         errorMessage = nil
 
         do {
             let response = try await weatherService.fetchWeather(
-                latitude: location.latitude,
-                longitude: location.longitude
+                latitude: weather.latitude,
+                longitude: weather.longitude
             )
 
-            currentWeather = response.current
-            
-            isLoading = false
+            let current = response.current
+
+            // Update Core Data
+            db.updateWeatherDetails(
+                for: weather,
+                temperature: current.temperature2M,
+                feelsLike: current.apparentTemperature,
+                humidity: current.relativeHumidity2M,
+                windSpeed: current.windSpeed10M,
+                windDirection: current.windDirection10M
+            )
 
         } catch {
             errorMessage = "Failed to load weather data"
-            isLoading = false
         }
 
-        
+        isLoading = false
     }
 }
