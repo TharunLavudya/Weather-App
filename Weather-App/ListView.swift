@@ -11,6 +11,8 @@ struct ListView: View {
 
     @StateObject private var viewModel = ViewModel()
     @Environment(\.dismiss) private var dismiss
+    @State private var showAddLocation = false
+
 
     var body: some View {
         NavigationStack {
@@ -57,9 +59,19 @@ struct ListView: View {
                         dismiss()
                     } label: {
                         Image(systemName: "chevron.left")
-                            .foregroundColor(.white)
                     }
                 }
+
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showAddLocation = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                }
+            }
+            .sheet(isPresented: $showAddLocation) {
+                SearchLocationView()
             }
             .searchable(
                 text: $viewModel.searchText,
